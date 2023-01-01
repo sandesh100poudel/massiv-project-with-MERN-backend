@@ -1,7 +1,7 @@
 
 const { v4: uuidv4 } = require('uuid');
 
-const DUMMY_PLACES = [{
+let DUMMY_PLACES = [{
     id:"p1",
     title:"Empire state building",
     description:"one of the most",
@@ -25,16 +25,16 @@ const getPlaceById = (req,res,next)=>{
     res.json({place});
 }
 
-const getPlaceByUserId =  (req,res,next)=>{
+const getPlacesByUserId =  (req,res,next)=>{
     const userId = req.params.uid;
-    const place = DUMMY_PLACES.find(p=>{
-        return p.creator === userId
+    const places = DUMMY_PLACES.filter(p=>{
+        return p.creator === userId;
     })
-    if(!place){
+    if(!places || places.length === 0){
         return res.status(404).json({message:"couldnot find creater id"});
       
     }
-    res.json({place});
+    res.json({places});
 
 }
 
@@ -68,8 +68,16 @@ const updatePlaceById = (req,res,next)=>{
     res.status(200).json({place:updatePlace});
 }
 
+const deletePlaceById = (req,res,next)=>{
+    const placeId = req.params.pid;
+    DUMMY_PLACES = DUMMY_PLACES.filter(p=>p.id !== placeId);
+
+    res.status(200).json({message:"place is successfully deleted"});
+}
+
 
 exports.getPlaceById = getPlaceById;
-exports.getPlaceByUserId=getPlaceByUserId;
+exports.getPlacesByUserId=getPlacesByUserId;
 exports.createPlace = createPlace;
 exports.updatePlaceById = updatePlaceById;
+exports.deletePlaceById = deletePlaceById;

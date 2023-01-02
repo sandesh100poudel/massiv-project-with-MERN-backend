@@ -32,16 +32,20 @@ const getPlaceById = async(req,res,next)=>{
     res.json({place:place.toObject({getters:true})});
 }
 
-const getPlacesByUserId =  (req,res,next)=>{
+const getPlacesByUserId = async (req,res,next)=>{
     const userId = req.params.uid;
-    const places = DUMMY_PLACES.filter(p=>{
-        return p.creator === userId;
-    })
+   let places;
+
+   try{
+    places=await Place.find({creator:userId});
+   }catch(err){
+    res.status(500).json({message:"fetching place failed; please try again later"})
+   }
     if(!places || places.length === 0){
         return res.status(404).json({message:"couldnot find creater id"});
       
     }
-    res.json({places});
+    res.json({places:places.map(place=>place.toObject({getter:true}))});
 
 }
 
@@ -74,7 +78,7 @@ const createPlace = async(req,res,next) =>{
     res.status(201).json({place:createdPlace})
 }
 
-const updatePlaceById = (req,res,next)=>{
+const updatePlaceById = async(req,res,next)=>{
     const errors = validationResult(req);
     if(!errors.isEmpty()){
         res.status(422).json({message:"invalid input"});
@@ -83,16 +87,24 @@ const updatePlaceById = (req,res,next)=>{
 
     const {title,description}=req.body;
     const placeId = req.params.pid;
-    const updatePlace={...DUMMY_PLACES.find(p=>p.id===placeId)}
+   let place;
 
-    const placeIndex = DUMMY_PLACES.findIndex(p=>p.id===placeId);
+   try{
+    place = await Place.findById(placeId);
 
-    updatePlace.title = title;
-    updatePlace.description = description;
+   }catch(err){
+    res.status(500).json({message:"Something failed, couldnot update"})
+   }
+    place.title = title;
+    place.description = description;
 
-    DUMMY_PLACES[placeIndex]=updatePlace;
+    try{
+        await place.save();
+    }catch(err){
+        res.status(500).json({message:"couldnot save"});
+    }
 
-    res.status(200).json({place:updatePlace});
+    res.status(200).json({place:place.toObject({getters:true})});
 }
 
 const deletePlaceById = (req,res,next)=>{

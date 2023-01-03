@@ -8,7 +8,7 @@ const userSchema = new Schema({
     email:{type:String, required:true, unique:true},
     password:{type:String, required:true},
     image:{type:String, required:true},
-    place:{type:String, required:true}
+    places:{type:String,required:true}
 });
 
 userSchema.plugin(UniqueValidator);

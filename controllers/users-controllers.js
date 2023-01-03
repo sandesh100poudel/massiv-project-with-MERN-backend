@@ -1,5 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
-const {validationResult} = require("express-validator");
+// const {validationResult} = require("express-validator");
+const User=require('../models/user');
 
 
 const DUMMY_USERS = [{
@@ -17,30 +18,46 @@ const getUsers = (req,res,next) =>{
     )
 }
 
-const signup= (req,res,next)=>{  
-    const errors = validationResult(req);
-    if(!errors.isEmpty()){
-        res.status(422).json({message:"invalid input"});
+const signup= async(req,res,next)=>{  
+    // const errors = validationResult(req);
+    // if(!errors.isEmpty()){
+    //     res.status(422).json({message:"invalid input"});
         
-    }
-    
-    const {name, email, password} = req.body;
+    // }
 
-    const hasUser = DUMMY_USERS.find(u=>u.email===email)
+    const {name, email, password,places} = req.body;
 
-    if(hasUser){
-     res.status(422).json({message:"email already exist"});
+    let existingUser;
+    try{
+        existingUser=await User.findOne({email:email})
+    }catch(err){
+         res.status(500).json({message:"something failed"})
     }
-    const createdUser = {
-        id:uuidv4(),
+
+    if(existingUser){
+        res(422).json({message:"User already exist"});
+    }
+
+    const createdUser = new User({
         name,
         email,
-        password
-    };
-      DUMMY_USERS.push(createdUser);
+        image:"https://cdn.siasat.com/wp-content/uploads/2022/12/srk-5-780x470.jpg",
+        password,
+        places
+    });
+
+    try{
+        await createdUser.save();
+    }catch(err){
+    res.status(404).json({message:"couldnot able to save"});
+       return console.log(err);
+    }
+
+
+
 
     
-    res.status(201).json({user:createdUser});
+    res.status(201).json({user:createdUser.toObject({getters:true})});
 };
 
 const login = (req,res,next)=>{

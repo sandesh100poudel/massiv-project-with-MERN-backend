@@ -25,7 +25,7 @@ const signup= async(req,res,next)=>{
         
     // }
 
-    const {name, email, password,places} = req.body;
+    const {name, email, password} = req.body;
 
     let existingUser;
     try{
@@ -43,7 +43,7 @@ const signup= async(req,res,next)=>{
         email,
         image:"https://cdn.siasat.com/wp-content/uploads/2022/12/srk-5-780x470.jpg",
         password,
-        places
+        places:[]
     });
 
     try{

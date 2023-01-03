@@ -13,7 +13,7 @@ app.use(bodyParser.json());
 app.use('/api/users',placesRoutes);
 app.use('/api/user',usersRoutes);
 
-mongoose.connect('mongodb+srv://anjita:DtzLLZxuikBe6xX5@cluster0.y8bjkek.mongodb.net/?retryWrites=true&w=majority')
+mongoose.connect('mongodb+srv://anjita:dfPnktDsOAvw7ueh@cluster0.y8bjkek.mongodb.net/?retryWrites=true&w=majority')
 .then(()=>{
     console.log("successfully connected to database atlas");
 }).catch(e=>

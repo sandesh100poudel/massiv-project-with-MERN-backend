@@ -35,18 +35,23 @@ const getPlaceById = async(req,res,next)=>{
 
 const getPlacesByUserId = async (req,res,next)=>{
     const userId = req.params.uid;
-   let places;
+   let userWithPlaces;
 
    try{
-    places=await Place.find({creator:userId});
+    userWithPlaces=await User.findById(userId).populate('places');
    }catch(err){
     res.status(500).json({message:"fetching place failed; please try again later"})
    }
-    if(!places || places.length === 0){
+    if(!userWithPlaces || userWithPlaces.length === 0){
         return res.status(404).json({message:"couldnot find creater id"});
       
     }
-    res.json({places:places.map(place=>place.toObject({getter:true}))});
+    res.json({
+        places: userWithPlaces.places.map(place =>
+          place.toObject({ getters: true })
+        )
+      });
+    // res.json({places:userWithPlaces.places.map(place=>place.toObject({getter:true}))});
 
 }
 

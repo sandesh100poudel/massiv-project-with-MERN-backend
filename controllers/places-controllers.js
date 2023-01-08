@@ -1,7 +1,8 @@
-
+const mongoose=require('mongoose');
 const { v4: uuidv4 } = require('uuid');
  const {validationResult} = require('express-validator');
  const Place = require('../models/place');
+ const User = require('../models/user');
 
 let DUMMY_PLACES = [{
     id:"p1",
@@ -55,7 +56,7 @@ const createPlace = async(req,res,next) =>{
         res.status(422).json({message:"invalid input"});
         
     }
-    const {title,description,coordinates,address,image,creator} = req.body;
+    const {title,description,coordinates,address,creator} = req.body;
 
     const createdPlace = new Place ({
         title,
@@ -66,8 +67,26 @@ const createPlace = async(req,res,next) =>{
         creator
     })
 
+    let user;
     try{
-        await createdPlace.save()
+        user=await User.findById(creator);
+    }catch(err){
+        res.status(500).json({message:"creating place failed"});
+    }
+
+    if(!user){
+        res.status(404).json({message:"couldn't find user for provided user"});
+    }
+    console.log(user);
+
+    try{
+        const sess = await mongoose.startSession();
+        sess.startTransaction();
+        await createdPlace.save({session:sess});
+        user.places.push(createdPlace);
+        await user.save({session:sess});
+        await sess.commitTransaction();
+
     }catch(err){
         res.status(401).json({message:"couldnot upload data"});
         return console.log(err);
@@ -112,14 +131,23 @@ const deletePlaceById =async (req,res,next)=>{
 
 let place;
 try{
-    place = await Place.findById(placeId);
+    place = await Place.findById(placeId).populate('creator');
 
 }catch(err){
     res.status(500).json({message:"really happy to see error"})
 }
 
+if(!place){
+    res.status(400).json({message:"couldnot find place for this id"})
+}
+
 try{
-    await place.remove();
+    const sess= await mongoose.startSession();
+    sess.startTransaction();
+    await place.remove({session:sess});
+    place.creator.places.pull(place);
+    await place.creator.save({session:sess});
+    await sess.commitTransaction();
 }catch(err){
     res.status(500).json({message:"couldnot able to deleted something failed"})
 }

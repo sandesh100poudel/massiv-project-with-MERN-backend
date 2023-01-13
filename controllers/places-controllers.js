@@ -1,20 +1,10 @@
 const mongoose=require('mongoose');
-const { v4: uuidv4 } = require('uuid');
+
  const {validationResult} = require('express-validator');
  const Place = require('../models/place');
  const User = require('../models/user');
 
-let DUMMY_PLACES = [{
-    id:"p1",
-    title:"Empire state building",
-    description:"one of the most",
-    location:{
-        lat:40,
-        lng:-67
-    },
-    address:"laxamangung",
-    creator:"u1"
-}]
+
 
 const getPlaceById = async(req,res,next)=>{
     const placeId = req.params.pid;
@@ -119,8 +109,10 @@ const updatePlaceById = async(req,res,next)=>{
    }catch(err){
     res.status(500).json({message:"Something failed, couldnot update"})
    }
-    place.title = title;
-    place.description = description;
+
+   place.title = title;
+   place.description = description;
+ 
 
     try{
         await place.save();
@@ -139,11 +131,12 @@ try{
     place = await Place.findById(placeId).populate('creator');
 
 }catch(err){
-    res.status(500).json({message:"really happy to see error"})
+    console.log(err);
+    res.status(500).json({message:"Something went wrong, could not delete place."})
 }
 
 if(!place){
-    res.status(400).json({message:"couldnot find place for this id"})
+    res.status(404).json({message:"couldnot find place for this id"})
 }
 
 try{
